@@ -43,14 +43,14 @@ struct CropEditor: View {
     let source: Source
     let close: () -> Void
 
-    @State private var preview: CGImage?
-    @State private var pixelSize: CGSize = .zero
+    @ViewState private var preview: CGImage? = nil
+    @ViewState private var pixelSize: CGSize = .zero
     /// Normalised crop rect, origin top-left.
-    @State private var crop = CGRect(x: 0, y: 0, width: 1, height: 1)
-    @State private var aspect: AspectChoice = .free
-    @State private var time: Double = 0
-    @State private var duration: Double = 0
-    @State private var generator: AVAssetImageGenerator?
+    @ViewState private var crop = CGRect(x: 0, y: 0, width: 1, height: 1)
+    @ViewState private var aspect: AspectChoice = .free
+    @ViewState private var time: Double = 0
+    @ViewState private var duration: Double = 0
+    @ViewState private var generator: AVAssetImageGenerator? = nil
 
     var body: some View {
         EditorChrome(title: source.isVideo ? "Crop Video" : "Crop Image", close: close) {
@@ -217,8 +217,8 @@ struct CropOverlay: View {
     @Binding var crop: CGRect
     var ratio: CGFloat?
 
-    @State private var start: CGRect?
-    @State private var dragging = false
+    @ViewState private var start: CGRect? = nil
+    @ViewState private var dragging = false
 
     private enum Corner: CaseIterable { case topLeft, topRight, bottomLeft, bottomRight }
 

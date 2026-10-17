@@ -4,20 +4,20 @@ import SwiftUI
 /// Trim, split, snapshot and speed for a video, sharing one player and filmstrip.
 struct TimelineEditor: View {
     let url: URL
-    @State var mode: TimelineMode
+    @ViewState var mode: TimelineMode
     let close: () -> Void
 
     @StateObject private var playback = Playback()
-    @State private var frames: [CGImage] = []
-    @State private var inPoint: Double = 0
-    @State private var outPoint: Double = 1
-    @State private var speed: Double = 2
+    @ViewState private var frames: [CGImage] = []
+    @ViewState private var inPoint: Double = 0
+    @ViewState private var outPoint: Double = 1
+    @ViewState private var speed: Double = 2
 
     private let speeds: [Double] = [0.25, 0.5, 0.75, 1.25, 1.5, 2, 3, 4]
 
     init(url: URL, mode: TimelineMode, close: @escaping () -> Void) {
         self.url = url
-        self._mode = State(initialValue: mode)
+        self._mode = ViewState(wrappedValue: mode)
         self.close = close
     }
 

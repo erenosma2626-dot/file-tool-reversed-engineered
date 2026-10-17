@@ -117,7 +117,7 @@ private struct JobCard: View {
 /// Thin capsule progress bar; animates a shimmer while the value is unknown.
 struct ProgressBar: View {
     var value: Double?
-    @State private var phase: CGFloat = -0.4
+    @ViewState private var phase: CGFloat = -0.4
 
     var body: some View {
         GeometryReader { geo in

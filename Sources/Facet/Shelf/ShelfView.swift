@@ -189,7 +189,7 @@ private struct ExpandedShelf: View {
 private struct ItemTile: View {
     @ObservedObject var item: ShelfItem
     let model: ShelfModel
-    @State private var hovering = false
+    @ViewState private var hovering = false
 
     var body: some View {
         VStack(spacing: 6) {
@@ -234,7 +234,7 @@ private struct ItemTile: View {
 private struct ItemRow: View {
     @ObservedObject var item: ShelfItem
     let model: ShelfModel
-    @State private var hovering = false
+    @ViewState private var hovering = false
 
     var body: some View {
         HStack(spacing: 10) {

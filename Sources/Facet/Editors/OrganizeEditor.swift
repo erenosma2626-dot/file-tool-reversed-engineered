@@ -17,9 +17,9 @@ struct OrganizeEditor: View {
         static func == (a: Item, b: Item) -> Bool { a.id == b.id && a.rotation == b.rotation && (a.thumbnail == nil) == (b.thumbnail == nil) }
     }
 
-    @State private var items: [Item] = []
-    @State private var dragging: Item.ID?
-    @State private var changed = false
+    @ViewState private var items: [Item] = []
+    @ViewState private var dragging: Item.ID? = nil
+    @ViewState private var changed = false
 
     private let columns = [GridItem(.adaptive(minimum: 120, maximum: 150), spacing: 14)]
 
@@ -27,18 +27,7 @@ struct OrganizeEditor: View {
         EditorChrome(title: "Organize Pages", close: close) {
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 16) {
-                    ForEach(items) { item in
-                        PageCell(item: item,
-                                 rotate: { rotate(item.id) },
-                                 delete: { delete(item.id) })
-                            .opacity(dragging == item.id ? 0.35 : 1)
-                            .onDrag {
-                                dragging = item.id
-                                return NSItemProvider(object: item.id.uuidString as NSString)
-                            }
-                            .onDrop(of: [UTType.text], delegate: ReorderDelegate(target: item.id, items: $items,
-                                                                                 dragging: $dragging, changed: $changed))
-                    }
+                    ForEach(items) { item in cell(item) }
                 }
                 .padding(.vertical, 6)
                 .animation(.spring(response: 0.3, dampingFraction: 0.85), value: items.map(\.id))
@@ -51,6 +40,19 @@ struct OrganizeEditor: View {
             PrimaryButton(title: "Save Copy", disabled: !changed || items.isEmpty) { save() }
         }
         .onAppear(perform: load)
+    }
+
+    private func cell(_ item: Item) -> some View {
+        let delegate = ReorderDelegate(target: item.id, items: $items, dragging: $dragging, changed: $changed)
+        return PageCell(item: item, rotate: { rotate(item.id) }, delete: { delete(item.id) })
+            .opacity(dragging == item.id ? 0.35 : 1)
+            .onDrag { beginDrag(item) }
+            .onDrop(of: [UTType.text], delegate: delegate)
+    }
+
+    private func beginDrag(_ item: Item) -> NSItemProvider {
+        dragging = item.id
+        return NSItemProvider(object: item.id.uuidString as NSString)
     }
 
     private func load() {
@@ -96,7 +98,7 @@ private struct PageCell: View {
     let item: OrganizeEditor.Item
     let rotate: () -> Void
     let delete: () -> Void
-    @State private var hovering = false
+    @ViewState private var hovering = false
 
     var body: some View {
         VStack(spacing: 6) {

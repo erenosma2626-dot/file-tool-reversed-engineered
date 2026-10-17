@@ -94,14 +94,14 @@ struct AnnotateEditor: View {
     let url: URL
     let close: () -> Void
 
-    @State private var image: CGImage?
-    @State private var preview: CGImage?
-    @State private var marks: [Mark] = []
-    @State private var current: Mark?
-    @State private var tool: MarkTool = .pen
-    @State private var colorIndex = 0
-    @State private var widthIndex = 1
-    @State private var editingText: UUID?
+    @ViewState private var image: CGImage? = nil
+    @ViewState private var preview: CGImage? = nil
+    @ViewState private var marks: [Mark] = []
+    @ViewState private var current: Mark? = nil
+    @ViewState private var tool: MarkTool = .pen
+    @ViewState private var colorIndex = 0
+    @ViewState private var widthIndex = 1
+    @ViewState private var editingText: UUID? = nil
 
     private let colors: [NSColor] = [.systemRed, .systemOrange, .systemYellow, .systemGreen, .systemBlue, .white, .black]
     private let widths: [CGFloat] = [0.004, 0.008, 0.014]

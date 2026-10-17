@@ -7,10 +7,10 @@ struct AdjustEditor: View {
     let url: URL
     let close: () -> Void
 
-    @State private var original: CGImage?
-    @State private var previewSource: CIImage?
-    @State private var preview: CGImage?
-    @State private var settings = Adjustments()
+    @ViewState private var original: CGImage? = nil
+    @ViewState private var previewSource: CIImage? = nil
+    @ViewState private var preview: CGImage? = nil
+    @ViewState private var settings = Adjustments()
 
     private static let context = CIContext(options: [.cacheIntermediates: false])
 
