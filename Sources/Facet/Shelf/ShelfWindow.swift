@@ -57,7 +57,8 @@ final class ShelfDropView: NSView {
 }
 
 final class ShelfWindow: NSObject, NSWindowDelegate {
-    static let collapsed = NSSize(width: 200, height: 220)
+    static let collapsed = NSSize(width: 170, height: 188)
+    private static let originKey = "shelfTopLeft"
 
     let model = ShelfModel()
     private let panel = ShelfPanel()
@@ -79,13 +80,21 @@ final class ShelfWindow: NSObject, NSWindowDelegate {
         model.onClose = { [weak self] in self?.close() }
     }
 
-    func show(near point: NSPoint) {
+    /// Opens where the user last left a shelf, or in the top-right corner of the screen under
+    /// the pointer. `stack` shifts it below shelves that are already open.
+    func show(near point: NSPoint, stack: Int = 0) {
         let size = Self.collapsed
-        var origin = NSPoint(x: point.x - size.width / 2, y: point.y - size.height / 2)
-        if let vf = (NSScreen.screens.first { NSMouseInRect(point, $0.frame, false) } ?? NSScreen.main)?.visibleFrame {
-            origin.x = min(max(origin.x, vf.minX + 8), vf.maxX - size.width - 8)
-            origin.y = min(max(origin.y, vf.minY + 8), vf.maxY - size.height - 8)
+        let screen = NSScreen.screens.first { NSMouseInRect(point, $0.frame, false) } ?? NSScreen.main
+        let vf = screen?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1440, height: 900)
+        var topLeft = NSPoint(x: vf.maxX - size.width - 16, y: vf.maxY - 16)
+        if let saved = UserDefaults.standard.string(forKey: Self.originKey).map(NSPointFromString),
+           vf.insetBy(dx: -1, dy: -1).contains(NSPoint(x: saved.x + 20, y: saved.y - 20)) {
+            topLeft = saved
         }
+        topLeft.y -= CGFloat(stack) * (size.height + 12)
+        var origin = NSPoint(x: topLeft.x, y: topLeft.y - size.height)
+        origin.x = min(max(origin.x, vf.minX + 8), vf.maxX - size.width - 8)
+        origin.y = min(max(origin.y, vf.minY + 8), vf.maxY - size.height - 8)
         panel.setFrame(NSRect(origin: origin, size: size), display: true)
         panel.alphaValue = 0
         panel.orderFrontRegardless()
@@ -108,6 +117,12 @@ final class ShelfWindow: NSObject, NSWindowDelegate {
         manager?.closed(self)
     }
 
+    /// Called after the user drags the shelf: new shelves open there from now on.
+    func rememberPosition() {
+        let f = panel.frame
+        UserDefaults.standard.set(NSStringFromPoint(NSPoint(x: f.minX, y: f.maxY)), forKey: Self.originKey)
+    }
+
     /// A little nudge when files are added to an existing shelf.
     func bounce() {
         panel.orderFrontRegardless()
@@ -121,7 +136,10 @@ final class ShelfWindow: NSObject, NSWindowDelegate {
     private func fitToContent(animated: Bool) {
         let size = targetSize()
         var frame = panel.frame
-        // Grow/shrink from the top-left corner so the header stays under the pointer.
+        // Keep the top edge fixed; on the right half of the screen grow leftwards so the
+        // shelf stays tucked against its edge.
+        let growLeft = panel.screen.map { frame.midX > $0.visibleFrame.midX } ?? false
+        if growLeft { frame.origin.x = frame.maxX - size.width }
         frame.origin.y = frame.maxY - size.height
         frame.size = size
         if let vf = panel.screen?.visibleFrame {
@@ -137,11 +155,32 @@ final class ShelfWindow: NSObject, NSWindowDelegate {
         switch model.layout {
         case .grid:
             let rows = Int(ceil(Double(n) / 3))
-            return NSSize(width: 440, height: min(84 + CGFloat(rows) * 128, 520))
+            return NSSize(width: 372, height: min(72 + CGFloat(rows) * 110, 460))
         case .list:
-            return NSSize(width: 400, height: min(84 + CGFloat(model.items.count) * 46 + 52, 520))
+            return NSSize(width: 340, height: min(72 + CGFloat(model.items.count) * 44 + 48, 460))
         }
     }
+}
+
+// MARK: - Moving the shelf
+
+/// Sits behind the shelf's content: dragging any empty area moves the window.
+/// (SwiftUI hosting views swallow the clicks `isMovableByWindowBackground` relies on.)
+final class WindowDragView: NSView {
+    override var mouseDownCanMoveWindow: Bool { true }
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+
+    override func mouseDown(with event: NSEvent) {
+        guard let window else { return }
+        let before = window.frame.origin
+        window.performDrag(with: event)
+        if window.frame.origin != before, let shelf = window.delegate as? ShelfWindow { shelf.rememberPosition() }
+    }
+}
+
+struct WindowDragArea: NSViewRepresentable {
+    func makeNSView(context: Context) -> WindowDragView { WindowDragView() }
+    func updateNSView(_ nsView: WindowDragView, context: Context) {}
 }
 
 // MARK: - Drag source

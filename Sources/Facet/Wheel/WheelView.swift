@@ -9,11 +9,11 @@ final class WheelModel: ObservableObject {
     @Published var visible = false
     var urls: [URL] = []
 
-    static let outerRadius: CGFloat = 158
-    static let innerRadius: CGFloat = 62
-    static let gap: CGFloat = 5          // gap between segments, in points
-    static let corner: CGFloat = 14      // segment corner rounding
-    static let size: CGFloat = 400       // panel size (room for shadow and the hint line)
+    static let outerRadius: CGFloat = 128
+    static let innerRadius: CGFloat = 50
+    static let gap: CGFloat = 4          // gap between segments, in points
+    static let corner: CGFloat = 12      // segment corner rounding
+    static let size: CGFloat = 330       // panel size (room for shadow and the hint line)
 
     /// Index of the segment under `p` (view coordinates, origin top-left), or nil for the hub.
     func index(at p: CGPoint) -> Int? {
@@ -95,39 +95,40 @@ struct WheelView: View {
                 SegmentLabel(item: item, isHot: isHot)
                     .position(labelPoint(angle: mid))
                     .frame(width: WheelModel.size, height: WheelModel.size)
-                    .facetSurface(shape, tint: isHot ? Tint.selection : nil)
+                    .facetSurface(shape, tint: isHot ? Tint.selection : Tint.segment)
                     .scaleEffect(isHot ? 1.035 : 1)
             }
         }
         .glassGroup(spacing: 8)
-        .shadow(color: .black.opacity(0.18), radius: 18, y: 8)
+        .shadow(color: Color.accentColor.opacity(0.22), radius: 22)
+        .shadow(color: .black.opacity(0.18), radius: 14, y: 6)
     }
 
     private var hub: some View {
         VStack(spacing: 2) {
             Text(hubTitle)
-                .font(.system(size: 12, weight: .semibold))
-                .tracking(0.6)
+                .font(.system(size: 11, weight: .semibold))
+                .tracking(0.5)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
             Text(hubDetail)
-                .font(.system(size: 10, weight: .medium))
+                .font(.system(size: 9.5, weight: .medium))
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
         }
         .frame(width: (WheelModel.innerRadius - 10) * 2 - 8)
         .padding(.vertical, 10)
         .frame(width: (WheelModel.innerRadius - 10) * 2, height: (WheelModel.innerRadius - 10) * 2)
-        .facetSurface(Circle())
+        .facetSurface(Circle(), tint: Tint.subtle)
         .overlay(alignment: .bottom) {
             Text(hint)
-                .font(.system(size: 11, weight: .medium))
+                .font(.system(size: 10.5, weight: .medium))
                 .foregroundStyle(.secondary)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 5)
+                .padding(.horizontal, 9)
+                .padding(.vertical, 4)
                 .facetSurface(Capsule())
                 .fixedSize()
-                .offset(y: WheelModel.outerRadius + 30)
+                .offset(y: WheelModel.outerRadius + 24)
                 .opacity(model.hovered == nil ? 0 : 1)
         }
     }
@@ -144,9 +145,9 @@ struct WheelView: View {
                 .font(.system(size: 11))
                 .foregroundStyle(.secondary)
         }
-        .padding(22)
-        .frame(width: 190, height: 190)
-        .facetSurface(Circle())
+        .padding(18)
+        .frame(width: 164, height: 164)
+        .facetSurface(Circle(), tint: Tint.subtle)
     }
 
     private var hubTitle: String {
@@ -178,23 +179,24 @@ private struct SegmentLabel: View {
     let isHot: Bool
 
     var body: some View {
-        VStack(spacing: 5) {
+        VStack(spacing: 4) {
             if let symbol = item.symbol {
                 Image(systemName: symbol)
-                    .font(.system(size: 17, weight: .medium))
+                    .font(.system(size: 15, weight: .medium))
                     .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(isHot ? Color.primary : Color.accentColor)
                 Text(item.title.uppercased())
-                    .font(.system(size: 9.5, weight: .semibold))
-                    .tracking(0.5)
+                    .font(.system(size: 8.5, weight: .semibold))
+                    .tracking(0.4)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
             } else {
                 Text(item.title)
-                    .font(.system(size: 17, weight: .bold, design: .rounded))
+                    .font(.system(size: 15, weight: .bold, design: .rounded))
                     .tracking(0.3)
             }
         }
-        .foregroundStyle(isHot ? Color.primary : Color.primary.opacity(0.78))
-        .frame(width: 78)
+        .foregroundStyle(isHot ? Color.primary : Color.primary.opacity(0.82))
+        .frame(width: 64)
     }
 }

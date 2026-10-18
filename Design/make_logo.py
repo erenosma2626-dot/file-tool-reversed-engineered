@@ -18,6 +18,15 @@ GAP = 22          # px between facets
 CORNER = 26       # rounding of facet corners
 N = 6
 LIT = 0           # index of the highlighted facet (12 o'clock)
+# (inner, outer) colour of each facet, clockwise from 12 o'clock: a soft spectrum of glass.
+HUES = [
+    ("#7FA8FF", "#B9D0FF"),  # blue (lit)
+    ("#8C7BEA", "#B7A8F7"),  # indigo
+    ("#C27BD9", "#E2AEEE"),  # violet
+    ("#E58AA8", "#F4BCCD"),  # rose
+    ("#58C2B4", "#9FE3D8"),  # teal
+    ("#5AA9DE", "#9CCEF0"),  # sky
+]
 
 
 def facet_path(i):
@@ -53,10 +62,19 @@ def svg(size=S, with_background=True):
             f'<mask id="m{i}" maskUnits="userSpaceOnUse" x="0" y="0" width="{S}" height="{S}">'
             f'<path d="{d}" fill="#fff" stroke="#fff" stroke-width="{CORNER * 2}" stroke-linejoin="round"/></mask>'
         )
-        fill = "url(#lit)" if i == LIT else "url(#glass)"
         facets.append(
-            f'<g filter="url(#soft)"><rect width="{S}" height="{S}" fill="{fill}" mask="url(#m{i})"/></g>'
+            f'<g filter="url(#soft)"><rect width="{S}" height="{S}" fill="url(#f{i})" mask="url(#m{i})"/></g>'
             f'<rect width="{S}" height="{S}" fill="url(#sheen)" mask="url(#m{i})"/>'
+        )
+    grads = []
+    for i, (a, b) in enumerate(HUES):
+        mid = i * 2 * math.pi / N - math.pi / 2
+        x1, y1 = C + R_IN * math.cos(mid), C + R_IN * math.sin(mid)
+        x2, y2 = C + R_OUT * math.cos(mid), C + R_OUT * math.sin(mid)
+        op = 1 if i == LIT else 0.88
+        grads.append(
+            f'<linearGradient id="f{i}" gradientUnits="userSpaceOnUse" x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}">'
+            f'<stop offset="0" stop-color="{a}" stop-opacity="{op}"/><stop offset="1" stop-color="{b}" stop-opacity="{op}"/></linearGradient>'
         )
 
     background = ""
@@ -74,42 +92,35 @@ def svg(size=S, with_background=True):
   <defs>
     <clipPath id="squircle"><rect x="{margin}" y="{margin}" width="{body}" height="{body}" rx="{radius}"/></clipPath>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#F6F8FC"/>
-      <stop offset="1" stop-color="#C9D4E7"/>
+      <stop offset="0" stop-color="#262A36"/>
+      <stop offset="1" stop-color="#101219"/>
     </linearGradient>
     <radialGradient id="blobA">
-      <stop offset="0" stop-color="#D9CCF5" stop-opacity="0.8"/>
-      <stop offset="1" stop-color="#D9CCF5" stop-opacity="0"/>
+      <stop offset="0" stop-color="#6E5BD6" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#6E5BD6" stop-opacity="0"/>
     </radialGradient>
     <radialGradient id="blobB">
-      <stop offset="0" stop-color="#BDE2DC" stop-opacity="0.85"/>
-      <stop offset="1" stop-color="#BDE2DC" stop-opacity="0"/>
+      <stop offset="0" stop-color="#2F9C9A" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#2F9C9A" stop-opacity="0"/>
     </radialGradient>
-    <linearGradient id="glass" gradientUnits="userSpaceOnUse" x1="0" y1="{C - R_OUT}" x2="0" y2="{C + R_OUT}">
-      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.97"/>
-      <stop offset="1" stop-color="#F1F4FA" stop-opacity="0.82"/>
-    </linearGradient>
-    <linearGradient id="lit" gradientUnits="userSpaceOnUse" x1="{C}" y1="{C - R_OUT}" x2="{C}" y2="{C - R_IN}">
-      <stop offset="0" stop-color="#B3CCF6"/>
-      <stop offset="1" stop-color="#86A8E8"/>
-    </linearGradient>
     <linearGradient id="sheen" gradientUnits="userSpaceOnUse" x1="0" y1="{C - R_OUT}" x2="0" y2="{C}">
-      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.45"/>
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.35"/>
       <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
     </linearGradient>
     <radialGradient id="hub" cx="0.4" cy="0.35" r="0.75">
-      <stop offset="0" stop-color="#FFFFFF"/>
-      <stop offset="1" stop-color="#E9EDF6"/>
+      <stop offset="0" stop-color="#3A3F4F"/>
+      <stop offset="1" stop-color="#1C1F29"/>
     </radialGradient>
     <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#33446A" flood-opacity="0.16"/>
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#000000" flood-opacity="0.45"/>
     </filter>
     {"".join(masks)}
+    {"".join(grads)}
   </defs>{background}
   <g transform="translate({t} {t}) scale({scale})">
     {"".join(facets)}
     <circle cx="{C}" cy="{C}" r="{R_IN - 30}" fill="url(#hub)" filter="url(#soft)"/>
-    <circle cx="{C}" cy="{C}" r="{R_IN - 31.5}" fill="none" stroke="#FFFFFF" stroke-width="3"/>
+    <circle cx="{C}" cy="{C}" r="{R_IN - 31.5}" fill="none" stroke="#FFFFFF" stroke-opacity="0.22" stroke-width="3"/>
   </g>
 </svg>'''
 

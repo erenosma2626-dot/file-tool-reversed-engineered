@@ -130,7 +130,7 @@ final class ShelfManager {
     func newShelf(with urls: [URL], at point: NSPoint) -> ShelfWindow {
         let shelf = ShelfWindow(manager: self)
         shelf.model.add(urls)
-        shelf.show(near: point)
+        shelf.show(near: point, stack: shelves.count)
         shelves.append(shelf)
         return shelf
     }

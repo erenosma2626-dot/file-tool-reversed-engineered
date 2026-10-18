@@ -16,10 +16,11 @@ struct ShelfView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .facetSurface(RoundedRectangle(cornerRadius: 30, style: .continuous),
-                      tint: model.isTargeted ? Tint.subtle : nil)
+        .background { WindowDragArea() }
+        .facetSurface(RoundedRectangle(cornerRadius: 26, style: .continuous),
+                      tint: model.isTargeted ? Tint.selection : Tint.subtle)
         .overlay {
-            RoundedRectangle(cornerRadius: 30, style: .continuous)
+            RoundedRectangle(cornerRadius: 26, style: .continuous)
                 .strokeBorder(Color.accentColor.opacity(model.isTargeted ? 0.55 : 0), lineWidth: 2)
         }
         .padding(1)
@@ -35,12 +36,12 @@ private struct CollapsedShelf: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                GlassIconButton(symbol: "xmark", size: 30) { model.onClose?() }
+                GlassIconButton(symbol: "xmark", size: 26) { model.onClose?() }
                 Spacer()
                 ShelfMenu(model: model)
             }
-            .padding(.horizontal, 12)
-            .padding(.top, 12)
+            .padding(.horizontal, 10)
+            .padding(.top, 10)
 
             Spacer(minLength: 0)
             stack
@@ -56,15 +57,15 @@ private struct CollapsedShelf: View {
                             .font(.system(size: 10, weight: .bold))
                             .foregroundStyle(.secondary)
                     }
-                    .font(.system(size: 12.5, weight: .medium))
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 7)
-                    .frame(maxWidth: 170)
+                    .font(.system(size: 12, weight: .medium))
+                    .padding(.horizontal, 11)
+                    .padding(.vertical, 6)
+                    .frame(maxWidth: 146)
                     .contentShape(Capsule())
                 }
                 .buttonStyle(.plain)
-                .facetSurface(Capsule(), interactive: true)
-                .padding(.bottom, 14)
+                .facetSurface(Capsule(), tint: Tint.subtle, interactive: true)
+                .padding(.bottom, 11)
             }
         }
     }
@@ -73,21 +74,22 @@ private struct CollapsedShelf: View {
         if model.items.isEmpty {
             VStack(spacing: 8) {
                 Image(systemName: "tray.and.arrow.down")
-                    .font(.system(size: 28, weight: .light))
+                    .font(.system(size: 24, weight: .light))
+                    .foregroundStyle(Color.accentColor)
                 Text("Drop files here")
                     .font(.system(size: 12, weight: .medium))
             }
             .foregroundStyle(.secondary)
-            .frame(width: 140, height: 110)
+            .frame(width: 120, height: 94)
             .background {
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .strokeBorder(Color.primary.opacity(0.18), style: StrokeStyle(lineWidth: 1.2, dash: [5, 4]))
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(Color.accentColor.opacity(0.45), style: StrokeStyle(lineWidth: 1.2, dash: [5, 4]))
             }
         } else {
             let top = Array(model.items.suffix(3))
             ZStack {
                 ForEach(Array(top.enumerated()), id: \.element.id) { i, item in
-                    ThumbnailView(item: item, size: 96)
+                    ThumbnailView(item: item, size: 80)
                         .rotationEffect(.degrees(top.count == 1 ? 0 : Double(i - (top.count - 1)) * -5))
                         .offset(x: CGFloat(i - (top.count - 1)) * -6)
                 }
@@ -97,10 +99,10 @@ private struct CollapsedShelf: View {
                         .padding(.horizontal, 7)
                         .padding(.vertical, 3)
                         .facetSurface(Capsule(), tint: Tint.selection)
-                        .offset(x: 50, y: -46)
+                        .offset(x: 42, y: -38)
                 }
             }
-            .frame(width: 150, height: 120)
+            .frame(width: 128, height: 100)
             .overlay {
                 DragSource(urls: { model.items.map(\.url) },
                            preview: { model.items.last?.thumbnail },
@@ -116,18 +118,18 @@ private struct CollapsedShelf: View {
 
 private struct ExpandedShelf: View {
     @ObservedObject var model: ShelfModel
-    private let columns = [GridItem(.adaptive(minimum: 118, maximum: 140), spacing: 10)]
+    private let columns = [GridItem(.adaptive(minimum: 100, maximum: 120), spacing: 8)]
 
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 10) {
-                GlassIconButton(symbol: "chevron.left", size: 32) { model.expanded = false }
+                GlassIconButton(symbol: "chevron.left", size: 28) { model.expanded = false }
                 VStack(alignment: .leading, spacing: 1) {
                     Text(model.items.count == 1 ? "1 File" : model.title)
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(.system(size: 14, weight: .semibold))
                         .lineLimit(1)
                     Text(model.totalSize)
-                        .font(.system(size: 11.5))
+                        .font(.system(size: 11))
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
@@ -139,9 +141,9 @@ private struct ExpandedShelf: View {
                 .padding(3)
                 .facetSurface(Capsule())
             }
-            .padding(.horizontal, 14)
-            .padding(.top, 14)
-            .padding(.bottom, 10)
+            .padding(.horizontal, 12)
+            .padding(.top, 12)
+            .padding(.bottom, 8)
 
             ScrollView {
                 if model.layout == .grid {
@@ -176,12 +178,12 @@ private struct ExpandedShelf: View {
         Button { model.layout = layout } label: {
             Image(systemName: symbol)
                 .font(.system(size: 13, weight: .medium))
-                .frame(width: 32, height: 26)
+                .frame(width: 28, height: 22)
                 .contentShape(Capsule())
         }
         .buttonStyle(.plain)
         .background {
-            if model.layout == layout { Capsule().fill(Color.primary.opacity(0.12)) }
+            if model.layout == layout { Capsule().fill(Color.accentColor.opacity(0.35)) }
         }
     }
 }
@@ -193,8 +195,8 @@ private struct ItemTile: View {
 
     var body: some View {
         VStack(spacing: 6) {
-            ThumbnailView(item: item, size: 76)
-                .frame(height: 80)
+            ThumbnailView(item: item, size: 62)
+                .frame(height: 66)
             Text(item.name)
                 .font(.system(size: 11.5, weight: .medium))
                 .lineLimit(1)
@@ -208,7 +210,7 @@ private struct ItemTile: View {
         .frame(maxWidth: .infinity)
         .background {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.primary.opacity(hovering ? 0.07 : 0))
+                .fill(Color.accentColor.opacity(hovering ? 0.18 : 0))
         }
         .overlay { dragSource }
         .overlay(alignment: .topLeading) { removeButton }
@@ -255,7 +257,7 @@ private struct ItemRow: View {
         .padding(.vertical, 5)
         .background {
             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(Color.primary.opacity(hovering ? 0.07 : 0))
+                .fill(Color.accentColor.opacity(hovering ? 0.18 : 0))
         }
         .overlay {
             DragSource(urls: { [item.url] },
@@ -280,10 +282,10 @@ private struct RevealTile: View {
         Button { reveal(model) } label: {
             VStack(spacing: 8) {
                 Image(systemName: "arrow.turn.up.right")
-                    .font(.system(size: 22, weight: .medium))
-                    .frame(width: 58, height: 58)
-                    .background(Circle().strokeBorder(Color.primary.opacity(0.35), lineWidth: 2))
-                    .frame(height: 80)
+                    .font(.system(size: 19, weight: .medium))
+                    .frame(width: 48, height: 48)
+                    .background(Circle().strokeBorder(Color.accentColor.opacity(0.5), lineWidth: 2))
+                    .frame(height: 66)
                 Text("Reveal in Finder")
                     .font(.system(size: 11.5, weight: .medium))
             }
@@ -311,8 +313,8 @@ private struct ShelfMenu: View {
             Button("Clear Shelf") { model.remove(Set(model.items.map(\.id))) }
         } label: {
             Image(systemName: "chevron.down")
-                .font(.system(size: 12, weight: .semibold))
-                .frame(width: 30, height: 30)
+                .font(.system(size: 11, weight: .semibold))
+                .frame(width: 26, height: 26)
                 .contentShape(Circle())
         }
         .menuStyle(.borderlessButton)

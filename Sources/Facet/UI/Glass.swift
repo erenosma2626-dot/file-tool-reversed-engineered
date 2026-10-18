@@ -4,7 +4,7 @@ import SwiftUI
 /// or an opaque fill when the user picks the Solid style.
 struct FacetSurface<S: Shape>: ViewModifier {
     let shape: S
-    var tint: Color? = nil
+    var tint: Color? = Tint.base
     var interactive = false
     @ObservedObject private var prefs = Prefs.shared
 
@@ -45,7 +45,7 @@ struct FacetSurface<S: Shape>: ViewModifier {
 }
 
 extension View {
-    func facetSurface<S: Shape>(_ shape: S, tint: Color? = nil, interactive: Bool = false) -> some View {
+    func facetSurface<S: Shape>(_ shape: S, tint: Color? = Tint.base, interactive: Bool = false) -> some View {
         modifier(FacetSurface(shape: shape, tint: tint, interactive: interactive))
     }
 
@@ -62,8 +62,12 @@ extension View {
 
 /// Palette: the system accent color, kept soft so it reads like tinted glass.
 enum Tint {
-    static var selection: Color { Color.accentColor.opacity(0.42) }
-    static var subtle: Color { Color.accentColor.opacity(0.16) }
+    /// Every glass surface carries a breath of the accent so it never looks grey.
+    static var base: Color { Color.accentColor.opacity(0.12) }
+    /// Resting wheel segments.
+    static var segment: Color { Color.accentColor.opacity(0.2) }
+    static var subtle: Color { Color.accentColor.opacity(0.26) }
+    static var selection: Color { Color.accentColor.opacity(0.55) }
 }
 
 /// Small circular glass button (close, back, chevrons).
